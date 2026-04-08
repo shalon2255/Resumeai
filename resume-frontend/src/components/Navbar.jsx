@@ -1,13 +1,21 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom"; // ✅ add useNavigate
+import axios from "axios";                                           // ✅ add axios
 
 const font = "'Sora', 'Plus Jakarta Sans', sans-serif";
 
 function Navbar() {
-  const location = useLocation();
-  const isActive = (path) => location.pathname === path;
+  const location  = useLocation();
+  const navigate  = useNavigate();                                   // ✅ add
+  const isActive  = (path) => location.pathname === path;
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token")); // ✅ add
+
+  // ✅ Update login state whenever route changes
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem("token"));
+  }, [location.pathname]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -15,8 +23,16 @@ function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // close menu on route change
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
+
+  // ✅ Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("resumeai_analyzer_result");
+    delete axios.defaults.headers.common["Authorization"];
+    setIsLoggedIn(false);
+    navigate("/login");
+  };
 
   const linkStyle = (active) => ({
     padding: "7px 15px",
@@ -38,168 +54,118 @@ function Navbar() {
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap');
 
         .navbar {
-          position: sticky;
-          top: 0;
-          z-index: 200;
-          width: 100%;
-          background: rgba(255,255,255,0.97);
-          border-bottom: 1px solid #e8ecef;
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          transition: box-shadow 0.25s;
-          font-family: ${font};
+          position: sticky; top: 0; z-index: 200; width: 100%;
+          background: rgba(255,255,255,0.97); border-bottom: 1px solid #e8ecef;
+          backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+          transition: box-shadow 0.25s; font-family: ${font};
         }
-        .navbar.scrolled {
-          box-shadow: 0 2px 16px rgba(0,0,0,0.07);
-        }
-
+        .navbar.scrolled { box-shadow: 0 2px 16px rgba(0,0,0,0.07); }
         .navbar-inner {
-          width: 100%;
-          padding: 0 48px;
-          height: 64px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
+          width: 100%; padding: 0 48px; height: 64px;
+          display: flex; align-items: center; gap: 8px;
         }
-
         .nav-logo {
-          display: flex;
-          align-items: center;
-          gap: 9px;
-          text-decoration: none;
-          flex-shrink: 0;
-          margin-right: 16px;
+          display: flex; align-items: center; gap: 9px;
+          text-decoration: none; flex-shrink: 0; margin-right: 16px;
         }
         .nav-logo-icon {
-          width: 36px; height: 36px;
-          background: #f0fdf9;
-          border: 1px solid #ccfbf1;
-          border-radius: 9px;
-          display: flex; align-items: center; justify-content: center;
-          flex-shrink: 0;
+          width: 36px; height: 36px; background: #f0fdf9;
+          border: 1px solid #ccfbf1; border-radius: 9px;
+          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
         .nav-logo-text {
-          font-size: 1.1rem;
-          font-weight: 800;
-          color: #111827;
-          letter-spacing: -0.02em;
-          font-family: ${font};
+          font-size: 1.1rem; font-weight: 800; color: #111827;
+          letter-spacing: -0.02em; font-family: ${font};
         }
-
-        .nav-links {
-          display: flex;
-          align-items: center;
-          gap: 2px;
-          flex: 1;
-        }
-
+        .nav-links { display: flex; align-items: center; gap: 2px; flex: 1; }
         .nav-link-item {
-          padding: 7px 15px;
-          border-radius: 8px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #6b7280;
-          background: transparent;
-          text-decoration: none;
-          font-family: ${font};
-          transition: color 0.18s, background 0.18s;
-          white-space: nowrap;
+          padding: 7px 15px; border-radius: 8px; font-size: 0.875rem;
+          font-weight: 500; color: #6b7280; background: transparent;
+          text-decoration: none; font-family: ${font};
+          transition: color 0.18s, background 0.18s; white-space: nowrap;
         }
-        .nav-link-item:hover {
-          color: #0D9488;
-          background: #f0fdf9;
+        .nav-link-item:hover { color: #0D9488; background: #f0fdf9; }
+        .nav-link-item.active { color: #0D9488; background: #f0fdf9; font-weight: 700; }
+        .nav-auth {
+          display: flex; align-items: center; gap: 8px;
+          margin-left: auto; flex-shrink: 0;
         }
-        .nav-link-item.active {
-          color: #0D9488;
-          background: #f0fdf9;
-          font-weight: 700;
+        .nav-login {
+          padding: 8px 18px; border: 1.5px solid #e5e7eb; border-radius: 9px;
+          font-size: 0.875rem; font-weight: 600; color: #374151;
+          text-decoration: none; font-family: ${font}; white-space: nowrap;
+          transition: border-color 0.18s, color 0.18s, background 0.18s; background: transparent;
         }
-
+        .nav-login:hover { border-color: #0D9488; color: #0D9488; background: #f0fdf9; }
+        .nav-login.active { border-color: #0D9488; color: #0D9488; background: #f0fdf9; }
         .nav-cta {
-          margin-left: auto;
-          padding: 9px 22px;
-          background: #0D9488;
-          color: #fff;
-          border-radius: 9px;
-          font-size: 0.875rem;
-          font-weight: 600;
-          text-decoration: none;
-          white-space: nowrap;
-          font-family: ${font};
-          flex-shrink: 0;
+          padding: 9px 22px; background: #0D9488; color: #fff; border-radius: 9px;
+          font-size: 0.875rem; font-weight: 600; text-decoration: none;
+          white-space: nowrap; font-family: ${font}; flex-shrink: 0;
           transition: background 0.18s, transform 0.18s, box-shadow 0.18s;
           box-shadow: 0 2px 8px rgba(13,148,136,0.2);
         }
-        .nav-cta:hover {
-          background: #0f766e;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 14px rgba(13,148,136,0.3);
+        .nav-cta:hover { background: #0f766e; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(13,148,136,0.3); }
+
+        /* ✅ Logout button */
+        .nav-logout {
+          padding: 8px 18px; border: 1.5px solid #fecaca; border-radius: 9px;
+          font-size: 0.875rem; font-weight: 600; color: #dc2626;
+          font-family: ${font}; white-space: nowrap; cursor: pointer;
+          transition: border-color 0.18s, background 0.18s; background: transparent;
         }
+        .nav-logout:hover { background: #fef2f2; border-color: #ef4444; }
 
         .hamburger {
-          display: none;
-          flex-direction: column;
-          gap: 5px;
-          cursor: pointer;
-          margin-left: auto;
-          background: none;
-          border: none;
-          padding: 8px;
-          border-radius: 8px;
-          transition: background 0.18s;
+          display: none; flex-direction: column; gap: 5px; cursor: pointer;
+          margin-left: auto; background: none; border: none; padding: 8px;
+          border-radius: 8px; transition: background 0.18s;
         }
         .hamburger:hover { background: #f3f4f6; }
         .hamburger span {
-          display: block;
-          width: 22px; height: 2px;
-          background: #374151;
-          border-radius: 2px;
-          transition: transform 0.25s, opacity 0.25s;
+          display: block; width: 22px; height: 2px; background: #374151;
+          border-radius: 2px; transition: transform 0.25s, opacity 0.25s;
         }
         .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
         .hamburger.open span:nth-child(2) { opacity: 0; }
         .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-
         .mobile-menu {
-          display: none;
-          flex-direction: column;
-          padding: 10px 16px 16px;
-          gap: 3px;
-          border-top: 1px solid #f3f4f6;
-          background: #fff;
+          display: none; flex-direction: column;
+          padding: 10px 16px 16px; gap: 3px;
+          border-top: 1px solid #f3f4f6; background: #fff;
         }
         .mobile-menu.open { display: flex; }
-
+        .mobile-auth-row { display: flex; gap: 8px; margin-top: 10px; }
+        .mobile-login {
+          flex: 1; display: block; text-align: center; padding: 11px;
+          border: 1.5px solid #e5e7eb; color: #374151; border-radius: 9px;
+          font-size: 0.875rem; font-weight: 600; text-decoration: none;
+          font-family: ${font}; transition: border-color 0.18s, color 0.18s;
+        }
+        .mobile-login:hover { border-color: #0D9488; color: #0D9488; }
         .mobile-cta {
-          margin-top: 10px;
-          display: block;
-          text-align: center;
-          padding: 12px;
-          background: #0D9488;
-          color: #fff;
-          border-radius: 9px;
-          font-size: 0.9rem;
-          font-weight: 600;
-          text-decoration: none;
-          font-family: ${font};
-          box-shadow: 0 2px 8px rgba(13,148,136,0.2);
+          flex: 1; display: block; text-align: center; padding: 11px;
+          background: #0D9488; color: #fff; border-radius: 9px;
+          font-size: 0.875rem; font-weight: 600; text-decoration: none;
+          font-family: ${font}; box-shadow: 0 2px 8px rgba(13,148,136,0.2);
         }
+        .mobile-logout {
+          width: 100%; margin-top: 8px; padding: 11px;
+          border: 1.5px solid #fecaca; border-radius: 9px;
+          font-size: 0.875rem; font-weight: 600; color: #dc2626;
+          font-family: ${font}; cursor: pointer; background: transparent;
+          transition: background 0.18s;
+        }
+        .mobile-logout:hover { background: #fef2f2; }
 
-        /* ── Responsive ── */
-        @media (max-width: 1280px) {
-          .navbar-inner { padding: 0 36px; }
-        }
-        @media (max-width: 1024px) {
-          .navbar-inner { padding: 0 28px; }
-        }
-        @media (max-width: 768px) {
-          .navbar-inner { padding: 0 20px; }
-        }
+        @media (max-width: 1280px) { .navbar-inner { padding: 0 36px; } }
+        @media (max-width: 1024px) { .navbar-inner { padding: 0 28px; } }
+        @media (max-width: 768px)  { .navbar-inner { padding: 0 20px; } }
         @media (max-width: 640px) {
-          .navbar-inner  { padding: 0 16px; }
-          .nav-links     { display: none; }
-          .nav-cta       { display: none; }
-          .hamburger     { display: flex; }
+          .navbar-inner { padding: 0 16px; }
+          .nav-links    { display: none; }
+          .nav-auth     { display: none; }
+          .hamburger    { display: flex; }
         }
       `}</style>
 
@@ -229,7 +195,19 @@ function Navbar() {
             <Link to="/about"    className={`nav-link-item ${isActive("/about") ? "active" : ""}`}>About</Link>
           </div>
 
-          <Link to="/analyzer" className="nav-cta">Get Resume Score</Link>
+          {/* Desktop auth — show Login/Signup OR Logout */}
+          <div className="nav-auth">
+            {isLoggedIn ? (
+              <button className="nav-logout" onClick={handleLogout}>
+                Log out
+              </button>
+            ) : (
+              <>
+                <Link to="/login"    className={`nav-login ${isActive("/login") ? "active" : ""}`}>Log in</Link>
+                <Link to="/register" className="nav-cta">Sign up free</Link>
+              </>
+            )}
+          </div>
 
           {/* Hamburger */}
           <button
@@ -246,8 +224,18 @@ function Navbar() {
           <Link to="/"         style={linkStyle(isActive("/"))}         onClick={() => setMenuOpen(false)}>Home</Link>
           <Link to="/analyzer" style={linkStyle(isActive("/analyzer"))} onClick={() => setMenuOpen(false)}>Analyzer</Link>
           <Link to="/rewriter" style={linkStyle(isActive("/rewriter"))} onClick={() => setMenuOpen(false)}>Resume Rewriter</Link>
-       
-          <Link to="/analyzer" className="mobile-cta"                   onClick={() => setMenuOpen(false)}>Get Resume Score</Link>
+          <Link to="/about"    style={linkStyle(isActive("/about"))}    onClick={() => setMenuOpen(false)}>About</Link>
+
+          {isLoggedIn ? (
+            <button className="mobile-logout" onClick={() => { handleLogout(); setMenuOpen(false); }}>
+              Log out
+            </button>
+          ) : (
+            <div className="mobile-auth-row">
+              <Link to="/login"    className="mobile-login" onClick={() => setMenuOpen(false)}>Log in</Link>
+              <Link to="/register" className="mobile-cta"   onClick={() => setMenuOpen(false)}>Sign up</Link>
+            </div>
+          )}
         </div>
       </nav>
     </>

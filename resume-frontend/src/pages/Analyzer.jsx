@@ -7,6 +7,17 @@ import SkillRadar from "../components/SkillRadar";
 const font = "'Sora', 'Plus Jakarta Sans', sans-serif";
 const STORAGE_KEY = "resumeai_analyzer_result";
 
+function getCookie(name) {
+  const cookies = document.cookie.split(";");
+  for (let cookie of cookies) {
+    cookie = cookie.trim();
+    if (cookie.startsWith(name + "=")) {
+      return decodeURIComponent(cookie.slice(name.length + 1));
+    }
+  }
+  return null;
+}
+
 function Analyzer() {
   const navigate = useNavigate();
   const [resume, setResume] = useState(null);
@@ -22,6 +33,13 @@ function Analyzer() {
     } catch { return null; }
   });
 
+  // ── Fetch CSRF cookie on mount ──
+useEffect(() => {
+  axios.get("http://127.0.0.1:8000/api/auth/csrf/", { withCredentials: true })
+    .then(res => {
+      axios.defaults.headers.common['X-CSRFToken'] = res.data.csrfToken;
+    });
+}, []);
   // ── Persist whenever result changes ──
   useEffect(() => {
     if (result) localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
@@ -55,7 +73,14 @@ function Analyzer() {
     formData.append("resume", resume);
     formData.append("job_description", jobDescription);
     try {
-      const res = await axios.post("http://127.0.0.1:8000/analyze/", formData);
+     
+const res = await axios.post("http://127.0.0.1:8000/analyze/", formData, {
+  withCredentials: true,
+  headers: {
+    "X-CSRFToken": getCookie("csrftoken"),
+    "Authorization": `Token ${localStorage.getItem("token")}`, // ✅ Add this
+  },
+});
       setResult(res.data);
       animateScore(res.data.score);
     } catch (err) {

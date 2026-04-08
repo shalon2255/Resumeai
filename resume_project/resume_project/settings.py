@@ -29,7 +29,17 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+CORS_ALLOW_CREDENTIALS = True
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+]
+
+CORS_ALLOW_CREDENTIALS = True 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,10 +50,27 @@ INSTALLED_APPS = [
     'analyzer',
     'rest_framework',
     'corsheaders',
+     'django.contrib.sites',
+     'accounts',
+      "rest_framework.authtoken",
+   
+]
+LOGIN_REDIRECT_URL = "http://localhost:3000/dashboard"
+LOGOUT_REDIRECT_URL = "http://localhost:3000/login"
+
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_EMAIL_VERIFICATION = "none"
+SITE_ID = 2
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+   
 ]
 from dotenv import load_dotenv
 load_dotenv()
 MIDDLEWARE = [
+      "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -51,8 +78,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "corsheaders.middleware.CorsMiddleware",
+  
     "django.middleware.common.CommonMiddleware",
+   
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 ROOT_URLCONF = 'resume_project.urls'
